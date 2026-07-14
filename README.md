@@ -42,5 +42,3 @@ npm install
 npm test
 npm run synth -- -c stage=dev
 ```
-
-See [infrastructure/README.md](infrastructure/README.md) before deploying to AWS.
