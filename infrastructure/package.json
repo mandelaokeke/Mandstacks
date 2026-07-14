@@ -1,0 +1,33 @@
+{
+  "name": "infrastructure",
+  "version": "0.1.0",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "test": "jest",
+    "synth": "cdk synth",
+    "diff": "cdk diff",
+    "deploy:dev": "cdk deploy -c stage=dev",
+    "deploy:prod": "cdk deploy -c stage=prod",
+    "seed:books": "ts-node scripts/seed-books.ts",
+    "cdk": "cdk"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.162",
+    "@types/jest": "^30",
+    "@types/node": "^24.13.3",
+    "aws-cdk": "2.1130.0",
+    "esbuild": "^0.28.1",
+    "jest": "^30",
+    "ts-jest": "^29",
+    "ts-node": "^10.9.2",
+    "typescript": "~5.9.3"
+  },
+  "dependencies": {
+    "@aws-sdk/client-cognito-identity-provider": "^3.1086.0",
+    "@aws-sdk/client-dynamodb": "^3.1085.0",
+    "@aws-sdk/lib-dynamodb": "^3.1085.0",
+    "aws-cdk-lib": "^2.261.0",
+    "constructs": "^10.6.0"
+  }
+}

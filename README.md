@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mandstacks
 
-## Getting Started
+Mandstacks is a cloud-native Integrated Library Management System for a small library, school, or university. The project is designed as a production-style portfolio application rather than a CRUD tutorial.
 
-First, run the development server:
+## Architecture
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```text
+Next.js → AWS Amplify → Amazon Cognito → API Gateway → Lambda → DynamoDB
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Next.js and TypeScript** provide the member and librarian experiences.
+- **Amazon Cognito** owns passwords, sign-up, recovery, tokens, and roles.
+- **API Gateway and Lambda** expose serverless REST APIs.
+- **DynamoDB** stores books, application profiles, and loan records.
+- **AWS CDK** defines repeatable development and production environments.
+- **CloudWatch and X-Ray** provide logs and request tracing.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The detailed product scope and milestone acceptance criteria live in [docs/PROJECT_VISION.md](docs/PROJECT_VISION.md).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Current status
 
-## Learn More
+Milestones 1–6 are complete. The development AWS stack and frontend are deployed. Members have live catalog, borrowing, returns, due dates, history, and profile workflows. Librarians have live operational metrics, catalog CRUD, member-role management, circulation processing, overdue views, and reports. Automated smoke tests verify Cognito → Lambda → DynamoDB → API Gateway behavior and server-side authorization.
 
-To learn more about Next.js, take a look at the following resources:
+View the current development release at [dev.dp4bdvmab1flk.amplifyapp.com](https://dev.dp4bdvmab1flk.amplifyapp.com).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The request and response contract is documented in [docs/API.md](docs/API.md).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Local development
 
-## Deploy on Vercel
+```bash
+npm install
+cp .env.example .env.local
+npm run dev
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Populate `.env.local` with the `AwsRegion`, `UserPoolId`, `UserPoolClientId`, and `ApiUrl` outputs from the development infrastructure deployment.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Infrastructure commands are run from `infrastructure/`:
+
+```bash
+npm install
+npm test
+npm run synth -- -c stage=dev
+```
+
+See [infrastructure/README.md](infrastructure/README.md) before deploying to AWS.
