@@ -15,8 +15,9 @@ export function BookCover({ book, index = 0, large = false }: { book: Book; inde
 
 export function BookCard({ book, index }: { book: Book; index: number }) {
   const available = book.availableCopies > 0;
+  const readable = book.digitalAccess === "PUBLIC_DOMAIN";
   const href = `/catalog/book?id=${encodeURIComponent(book.bookId)}`;
-  return <article className="book-card"><Link href={href}><BookCover book={book} index={index}/></Link><div className="book-card-copy"><span className="eyebrow">{book.category}</span><h3><Link href={href}>{book.title}</Link></h3><p>{book.author}</p><span className={`availability ${available ? "available" : "unavailable"}`}><i/>{available ? `${book.availableCopies} available` : "Waitlist only"}</span></div></article>;
+  return <article className="book-card"><Link href={href}><BookCover book={book} index={index}/></Link><div className="book-card-copy"><span className="eyebrow">{book.category}</span><h3><Link href={href}>{book.title}</Link></h3><p>{book.author}</p><div className="book-card-status"><span className={`availability ${available ? "available" : "unavailable"}`}><i/>{available ? `${book.availableCopies} available` : "Waitlist only"}</span>{readable && <Link className="read-badge" href={`/reader?id=${encodeURIComponent(book.bookId)}`}>Read online →</Link>}</div></div></article>;
 }
 
 export function PageHeading({ eyebrow, title, description, action }: { eyebrow?: string; title: React.ReactNode; description?: string; action?: React.ReactNode }) {

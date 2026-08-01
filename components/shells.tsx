@@ -7,7 +7,7 @@ import { Logo } from "./ui";
 import { AuthGuard, useAuth } from "./auth-provider";
 
 const memberLinks = [
-  ["/dashboard", "home", "Overview"], ["/catalog", "search", "Discover"], ["/borrowed", "book", "My books"], ["/history", "history", "History"], ["/profile", "user", "Profile"],
+  ["/dashboard", "home", "Overview"], ["/catalog", "search", "Discover"], ["/read", "book", "Read online"], ["/borrowed", "book", "My books"], ["/history", "history", "History"], ["/profile", "user", "Profile"],
 ];
 const adminLinks = [
   ["/admin", "home", "Overview"], ["/admin/books", "book", "Books"], ["/admin/users", "users", "Members"], ["/admin/loans", "history", "Borrowing"], ["/admin/overdue", "warning", "Overdue"], ["/admin/reports", "chart", "Reports"],
