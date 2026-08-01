@@ -11,13 +11,24 @@ export interface Book {
   coverImage?: string;
   source?: "OPEN_LIBRARY";
   sourceUrl?: string;
+  digitalAccess?: "PUBLIC_DOMAIN";
+  ebookFormat?: "TEXT";
+  license?: string;
   totalCopies: number;
   availableCopies: number;
   createdAt?: string;
   updatedAt?: string;
 }
 
-export type BookInput = Omit<Book, "bookId" | "availableCopies" | "createdAt" | "updatedAt" | "source" | "sourceUrl">;
+export type BookInput = Omit<Book, "bookId" | "availableCopies" | "createdAt" | "updatedAt" | "source" | "sourceUrl" | "digitalAccess" | "ebookFormat" | "license">;
+
+export interface ReadingAccess {
+  url: string;
+  expiresIn: number;
+  format: "TEXT";
+  license: string;
+  sourceUrl?: string;
+}
 
 export interface Loan {
   loanId: string;

@@ -10,9 +10,10 @@ function event(
     body?: Record<string, unknown>;
     groups?: string[];
     userId?: string;
+    bookId?: string;
   } = {},
 ): ApiEvent {
-  return {
+  const result = {
     version: "2.0",
     routeKey,
     rawPath: routeKey.split(" ")[1],
@@ -44,6 +45,8 @@ function event(
     isBase64Encoded: false,
     body: options.body ? JSON.stringify(options.body) : undefined,
   } as unknown as ApiEvent;
+  if (options.bookId) result.pathParameters = { id: options.bookId };
+  return result;
 }
 
 function eventWithSerializedGroups(routeKey: string, groups: string[]): ApiEvent {
@@ -103,6 +106,43 @@ describe("books API", () => {
     );
     expect(result).toMatchObject({ statusCode: 400 });
     expect(send).not.toHaveBeenCalled();
+  });
+
+  test("creates a short-lived reading URL for an available public-domain book", async () => {
+    const send = jest.fn().mockResolvedValueOnce({
+      Item: {
+        bookId: "book-1",
+        digitalAccess: "PUBLIC_DOMAIN",
+        ebookKey: "public-domain/book-1.txt",
+        license: "Public domain in the United States",
+      },
+    });
+    const createUrl = jest.fn().mockResolvedValue("https://private.example/read");
+
+    const result = await createBooksHandler(clientWith(send), createUrl)(
+      event("GET /books/{id}/content", { bookId: "book-1" }),
+    );
+    const body = JSON.parse(String((result as { body: string }).body));
+
+    expect(result).toMatchObject({ statusCode: 200 });
+    expect(createUrl).toHaveBeenCalledWith("public-domain/book-1.txt");
+    expect(body.data).toMatchObject({
+      url: "https://private.example/read",
+      expiresIn: 300,
+      format: "TEXT",
+    });
+  });
+
+  test("does not issue a reading URL for a physical-only book", async () => {
+    const send = jest.fn().mockResolvedValueOnce({ Item: { bookId: "book-1" } });
+    const createUrl = jest.fn();
+
+    const result = await createBooksHandler(clientWith(send), createUrl)(
+      event("GET /books/{id}/content", { bookId: "book-1" }),
+    );
+
+    expect(result).toMatchObject({ statusCode: 404 });
+    expect(createUrl).not.toHaveBeenCalled();
   });
 });
 

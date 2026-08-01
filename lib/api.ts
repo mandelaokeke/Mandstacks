@@ -1,4 +1,4 @@
-import type { Book, BookInput, Loan, PageResult, UserProfile } from "./types";
+import type { Book, BookInput, Loan, PageResult, ReadingAccess, UserProfile } from "./types";
 import { fetchAuthSession } from "aws-amplify/auth";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
@@ -50,6 +50,7 @@ export const api = {
   books: (query = "") => request<PageResult<Book>>(`/books${query}`),
   allBooks: (query = "") => requestAllPages<Book>("/books", query),
   book: (id: string) => request<Book>(`/books/${id}`),
+  readingAccess: (id: string) => request<ReadingAccess>(`/books/${id}/content`),
   createBook: (book: BookInput) => request<Book>("/books", { method: "POST", body: JSON.stringify(book) }),
   updateBook: (id: string, book: BookInput) => request<Book>(`/books/${id}`, { method: "PUT", body: JSON.stringify(book) }),
   deleteBook: (id: string) => request<void>(`/books/${id}`, { method: "DELETE" }),

@@ -22,6 +22,7 @@ List endpoints accept `limit` (1–50) and an opaque `cursor` returned by the pr
 
 - `GET /books` — paginated catalog. Optional `search`, `category`, and `availableOnly=true` parameters.
 - `GET /books/{id}` — one catalog record.
+- `GET /books/{id}/content` — returns a five-minute signed reading URL when a public-domain digital edition is available.
 - `POST /books` — admin only. Creates a book.
 - `PUT /books/{id}` — admin only. Replaces editable book fields while preserving the number of copies currently on loan.
 - `DELETE /books/{id}` — admin only. Rejected while any copy is on loan.

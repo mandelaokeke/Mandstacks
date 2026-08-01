@@ -71,12 +71,13 @@ describe("Library infrastructure", () => {
       RouteKey: "GET /auth-check",
       AuthorizationType: "JWT",
     });
-    template.resourceCountIs("AWS::ApiGatewayV2::Route", 15);
+    template.resourceCountIs("AWS::ApiGatewayV2::Route", 16);
     template.resourceCountIs("AWS::Lambda::Function", 5);
     for (const routeKey of [
       "GET /books",
       "POST /books",
       "GET /books/{id}",
+      "GET /books/{id}/content",
       "PUT /books/{id}",
       "DELETE /books/{id}",
       "GET /profile",
@@ -93,6 +94,28 @@ describe("Library infrastructure", () => {
         AuthorizationType: "JWT",
       });
     }
+  });
+
+  test("stores readable books privately and grants the books API read access", () => {
+    const template = createTemplate();
+
+    template.resourceCountIs("AWS::S3::Bucket", 1);
+    template.hasResourceProperties("AWS::S3::Bucket", {
+      BucketEncryption: {
+        ServerSideEncryptionConfiguration: Match.anyValue(),
+      },
+      PublicAccessBlockConfiguration: {
+        BlockPublicAcls: true,
+        BlockPublicPolicy: true,
+        IgnorePublicAcls: true,
+        RestrictPublicBuckets: true,
+      },
+    });
+    template.hasResourceProperties("AWS::Lambda::Function", {
+      Environment: {
+        Variables: Match.objectLike({ EBOOKS_BUCKET_NAME: Match.anyValue() }),
+      },
+    });
   });
 
   test("retains production data and enables point-in-time recovery", () => {

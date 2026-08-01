@@ -5,6 +5,7 @@ AWS CDK provisions one independently named stack per stage.
 ## Resources
 
 - DynamoDB tables for books, loans, and profiles, with indexes for category browsing, member/book loan history, and status/due-date reporting.
+- A private, encrypted S3 bucket for readable public-domain editions, delivered through short-lived signed URLs.
 - Cognito user pool, secretless browser client, and `Members`/`Admins` groups. A post-confirmation Lambda creates the application profile and assigns new accounts to `Members`.
 - API Gateway HTTP API with CORS, a public health check, and Cognito JWT-protected catalog, member, and administrator routes.
 - ARM64 Node.js Lambdas for health, books, users, loans, and post-confirmation workflows, with X-Ray tracing and explicitly managed CloudWatch log groups.
@@ -64,6 +65,13 @@ After reviewing the preview, import the records into the deployed development ta
 
 ```bash
 BOOKS_TABLE_NAME=<BooksTableName output> npm run import:books -- --limit=150 --write
+```
+
+After deployment, attach the curated Project Gutenberg text editions to matching catalog records. This importer is a dry run unless `--write` is included and can be safely rerun:
+
+```bash
+BOOKS_TABLE_NAME=<BooksTableName output> EBOOKS_BUCKET_NAME=<EbooksBucketName output> npm run import:ebooks
+BOOKS_TABLE_NAME=<BooksTableName output> EBOOKS_BUCKET_NAME=<EbooksBucketName output> npm run import:ebooks -- --write
 ```
 
 The optional limit must be between 1 and 500. Imported records retain their Open Library source URL and use remotely hosted cover artwork. This workflow imports catalog metadata only; it does not copy or redistribute ebook files.

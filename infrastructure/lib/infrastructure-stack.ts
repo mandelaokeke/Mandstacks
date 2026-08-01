@@ -10,6 +10,7 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as lambdaNodejs from "aws-cdk-lib/aws-lambda-nodejs";
 import * as logs from "aws-cdk-lib/aws-logs";
 import * as iam from "aws-cdk-lib/aws-iam";
+import * as s3 from "aws-cdk-lib/aws-s3";
 
 export interface InfrastructureStackProps extends cdk.StackProps {
   stage: string;
@@ -115,6 +116,22 @@ export class InfrastructureStack extends cdk.Stack {
       },
     });
 
+    const ebooksBucket = new s3.Bucket(this, "EbooksBucket", {
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      encryption: s3.BucketEncryption.S3_MANAGED,
+      enforceSSL: true,
+      versioned: isProduction,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+      cors: [{
+        allowedMethods: [s3.HttpMethods.GET],
+        allowedOrigins: props.frontendUrl
+          ? [props.frontendUrl]
+          : ["http://localhost:3000"],
+        allowedHeaders: ["*"],
+        maxAge: 300,
+      }],
+    });
+
     const userPool = new cognito.UserPool(this, "LibraryUserPool", {
       userPoolName: `library-management-users-${stage}`,
       selfSignUpEnabled: true,
@@ -213,6 +230,7 @@ export class InfrastructureStack extends cdk.Stack {
 
     const booksFunction = createApiFunction("BooksFunction", "books/handler.ts", {
       BOOKS_TABLE_NAME: booksTable.tableName,
+      EBOOKS_BUCKET_NAME: ebooksBucket.bucketName,
     });
     const usersFunction = createApiFunction("UsersFunction", "users/handler.ts", {
       USERS_TABLE_NAME: usersTable.tableName,
@@ -232,6 +250,7 @@ export class InfrastructureStack extends cdk.Stack {
     );
 
     booksTable.grantReadWriteData(booksFunction);
+    ebooksBucket.grantRead(booksFunction);
     usersTable.grantReadWriteData(usersFunction);
     usersFunction.addToRolePolicy(new iam.PolicyStatement({
       actions: [
@@ -332,6 +351,12 @@ export class InfrastructureStack extends cdk.Stack {
       integration: booksIntegration,
       authorizer: jwtAuthorizer,
     });
+    api.addRoutes({
+      path: "/books/{id}/content",
+      methods: [apigwv2.HttpMethod.GET],
+      integration: booksIntegration,
+      authorizer: jwtAuthorizer,
+    });
 
     const usersIntegration = new integrations.HttpLambdaIntegration(
       "UsersIntegration",
@@ -380,6 +405,7 @@ export class InfrastructureStack extends cdk.Stack {
     const outputs: Record<string, string> = {
       ApiUrl: api.apiEndpoint,
       BooksTableName: booksTable.tableName,
+      EbooksBucketName: ebooksBucket.bucketName,
       LoansTableName: loansTable.tableName,
       UsersTableName: usersTable.tableName,
       UserPoolId: userPool.userPoolId,

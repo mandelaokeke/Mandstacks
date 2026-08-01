@@ -8,6 +8,8 @@ import {
   ScanCommand,
 } from "@aws-sdk/lib-dynamodb";
 import type { APIGatewayProxyResultV2 } from "aws-lambda";
+import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { documentClient } from "../common/dynamo";
 import {
   ApiError,
@@ -22,6 +24,16 @@ import {
 } from "../common/http";
 
 const tableName = process.env.BOOKS_TABLE_NAME ?? "";
+const ebooksBucketName = process.env.EBOOKS_BUCKET_NAME ?? "";
+const s3Client = new S3Client({});
+
+type ReadingUrlFactory = (key: string) => Promise<string>;
+
+const createReadingUrl: ReadingUrlFactory = key => getSignedUrl(
+  s3Client,
+  new GetObjectCommand({ Bucket: ebooksBucketName, Key: key }),
+  { expiresIn: 300 },
+);
 
 interface BookInput {
   title: string;
@@ -32,6 +44,12 @@ interface BookInput {
   description: string;
   coverImage?: string;
   totalCopies: number;
+}
+
+function publicBook(item: Record<string, unknown>): Record<string, unknown> {
+  const book = { ...item };
+  delete book.ebookKey;
+  return book;
 }
 
 function validateBook(body: Record<string, unknown>): BookInput {
@@ -56,7 +74,10 @@ function validateBook(body: Record<string, unknown>): BookInput {
   };
 }
 
-export function createBooksHandler(client: DynamoDBDocumentClient) {
+export function createBooksHandler(
+  client: DynamoDBDocumentClient,
+  readingUrlFactory: ReadingUrlFactory = createReadingUrl,
+) {
   return async (event: ApiEvent): Promise<APIGatewayProxyResultV2> =>
     handleErrors(event.requestContext.requestId, async () => {
       const route = event.routeKey;
@@ -105,7 +126,7 @@ export function createBooksHandler(client: DynamoDBDocumentClient) {
           : await client.send(new ScanCommand(common));
 
         return response(200, {
-          items: result.Items ?? [],
+          items: (result.Items ?? []).map(publicBook),
           cursor: encodeCursor(result.LastEvaluatedKey),
         });
       }
@@ -113,7 +134,24 @@ export function createBooksHandler(client: DynamoDBDocumentClient) {
       if (route === "GET /books/{id}") {
         const result = await client.send(new GetCommand({ TableName: tableName, Key: { bookId } }));
         if (!result.Item) throw new ApiError(404, "BOOK_NOT_FOUND", "Book not found");
-        return response(200, result.Item);
+        return response(200, publicBook(result.Item));
+      }
+
+      if (route === "GET /books/{id}/content") {
+        const result = await client.send(new GetCommand({ TableName: tableName, Key: { bookId } }));
+        if (!result.Item) throw new ApiError(404, "BOOK_NOT_FOUND", "Book not found");
+        const ebookKey = result.Item.ebookKey;
+        if (result.Item.digitalAccess !== "PUBLIC_DOMAIN" || typeof ebookKey !== "string" || !ebookKey) {
+          throw new ApiError(404, "DIGITAL_COPY_UNAVAILABLE", "This book does not have a readable digital edition");
+        }
+
+        return response(200, {
+          url: await readingUrlFactory(ebookKey),
+          expiresIn: 300,
+          format: "TEXT",
+          license: result.Item.license ?? "Public domain in the United States",
+          sourceUrl: result.Item.readingSourceUrl,
+        });
       }
 
       if (route === "POST /books") {
