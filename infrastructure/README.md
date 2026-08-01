@@ -49,3 +49,21 @@ Seed the development catalog after deployment. The command only creates missing 
 ```bash
 BOOKS_TABLE_NAME=<BooksTableName output> npm run seed:books
 ```
+
+### Import a larger catalog
+
+Mandstacks can collect a balanced catalog from the Open Library Search API. The importer requests records in small batches, requires a cover and ISBN, removes duplicates, and never overwrites an existing title or its inventory.
+
+Preview up to 150 records without changing AWS:
+
+```bash
+npm run import:books -- --limit=150
+```
+
+After reviewing the preview, import the records into the deployed development table:
+
+```bash
+BOOKS_TABLE_NAME=<BooksTableName output> npm run import:books -- --limit=150 --write
+```
+
+The optional limit must be between 1 and 500. Imported records retain their Open Library source URL and use remotely hosted cover artwork. This workflow imports catalog metadata only; it does not copy or redistribute ebook files.

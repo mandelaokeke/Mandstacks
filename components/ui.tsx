@@ -3,12 +3,14 @@ import { coverColors } from "@/lib/demo";
 import type { Book, LoanStatus } from "@/lib/types";
 import { Icon } from "./icons";
 
+/* Open Library cover URLs are already image-sized and intentionally rendered directly. */
+
 export function Logo({ inverse = false }: { inverse?: boolean }) {
   return <Link href="/" className={`logo ${inverse ? "logo-inverse" : ""}`} aria-label="Mandstacks home"><span className="logo-mark"><i/><i/><i/></span><span>Mandstacks</span></Link>;
 }
 
 export function BookCover({ book, index = 0, large = false }: { book: Book; index?: number; large?: boolean }) {
-  return <div className={`book-cover cover-${coverColors[index % coverColors.length]} ${large ? "book-cover-large" : ""}`}><span className="cover-category">{book.category}</span><strong>{book.title}</strong><small>{book.author}</small></div>;
+  return <div className={`book-cover cover-${coverColors[index % coverColors.length]} ${book.coverImage ? "book-cover-image" : ""} ${large ? "book-cover-large" : ""}`}>{book.coverImage ? <img src={book.coverImage} alt={`Cover of ${book.title}`} loading="lazy"/> : <><span className="cover-category">{book.category}</span><strong>{book.title}</strong><small>{book.author}</small></>}</div>;
 }
 
 export function BookCard({ book, index }: { book: Book; index: number }) {

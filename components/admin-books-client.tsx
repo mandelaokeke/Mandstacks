@@ -30,7 +30,7 @@ export function AdminBooksClient() {
   const [books, setBooks] = useState<Book[]>([]); const [search, setSearch] = useState("");
   const [editor, setEditor] = useState<Book | "new" | null>(null); const [loading, setLoading] = useState(true);
   const [error, setError] = useState(""); const [message, setMessage] = useState("");
-  const load = useCallback(async () => { setLoading(true); try { setBooks((await api.books("?limit=50")).items); } catch (caught) { setError(caught instanceof Error ? caught.message : "The catalog could not be loaded."); } finally { setLoading(false); } }, []);
+  const load = useCallback(async () => { setLoading(true); try { setBooks(await api.allBooks()); } catch (caught) { setError(caught instanceof Error ? caught.message : "The catalog could not be loaded."); } finally { setLoading(false); } }, []);
   useEffect(() => { void load(); }, [load]);
   const visible = useMemo(() => { const term = search.toLowerCase(); return books.filter(book => [book.title, book.author, book.isbn].some(value => value.toLowerCase().includes(term))); }, [books, search]);
   function saved(book: Book) { setBooks(items => { const exists = items.some(item => item.bookId === book.bookId); return exists ? items.map(item => item.bookId === book.bookId ? book : item) : [book, ...items]; }); setEditor(null); setMessage("The catalog record was saved."); }

@@ -9,13 +9,15 @@ export interface Book {
   publisher: string;
   description: string;
   coverImage?: string;
+  source?: "OPEN_LIBRARY";
+  sourceUrl?: string;
   totalCopies: number;
   availableCopies: number;
   createdAt?: string;
   updatedAt?: string;
 }
 
-export type BookInput = Omit<Book, "bookId" | "availableCopies" | "createdAt" | "updatedAt">;
+export type BookInput = Omit<Book, "bookId" | "availableCopies" | "createdAt" | "updatedAt" | "source" | "sourceUrl">;
 
 export interface Loan {
   loanId: string;

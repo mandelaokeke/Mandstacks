@@ -10,6 +10,7 @@
     "deploy:dev": "cdk deploy -c stage=dev",
     "deploy:prod": "cdk deploy -c stage=prod",
     "seed:books": "ts-node scripts/seed-books.ts",
+    "import:books": "ts-node scripts/import-open-library.ts",
     "cdk": "cdk"
   },
   "devDependencies": {

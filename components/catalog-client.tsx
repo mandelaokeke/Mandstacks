@@ -6,7 +6,7 @@ import { BookCard, EmptyState, PageHeading } from "./ui";
 import { api } from "@/lib/api";
 import type { Book } from "@/lib/types";
 
-const categories = ["Fiction", "Memoir", "Nature", "Personal Growth", "Science Fiction", "Design"];
+const categories = ["Biography", "Children", "Design", "Fiction", "History", "Memoir", "Mystery", "Nature", "Personal Growth", "Science", "Science Fiction", "Technology"];
 
 export function CatalogClient() {
   const [books, setBooks] = useState<Book[]>([]);
@@ -26,8 +26,8 @@ export function CatalogClient() {
       if (category) params.set("category", category);
       if (availableOnly) params.set("availableOnly", "true");
       try {
-        const result = await api.books(`?${params.toString()}`);
-        if (active) setBooks(result.items);
+        const result = await api.allBooks(params.toString());
+        if (active) setBooks(result);
       } catch (caught) {
         if (active) setError(caught instanceof Error ? caught.message : "The catalog could not be loaded.");
       } finally {

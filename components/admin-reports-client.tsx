@@ -8,7 +8,7 @@ import { PageHeading, StatCard } from "./ui";
 
 export function AdminReportsClient() {
   const [books, setBooks] = useState<Book[]>([]); const [users, setUsers] = useState<UserProfile[]>([]); const [loans, setLoans] = useState<Loan[]>([]); const [loading, setLoading] = useState(true); const [error, setError] = useState("");
-  useEffect(() => { Promise.all([api.books("?limit=50"), api.users(), api.allLoans("?limit=50")]).then(([b, u, l]) => { setBooks(b.items); setUsers(u.items); setLoans(l.items); }).catch(caught => setError(caught instanceof Error ? caught.message : "Reports could not be loaded.")).finally(() => setLoading(false)); }, []);
+  useEffect(() => { Promise.all([api.allBooks(), api.users(), api.allLoans("?limit=50")]).then(([b, u, l]) => { setBooks(b); setUsers(u.items); setLoans(l.items); }).catch(caught => setError(caught instanceof Error ? caught.message : "Reports could not be loaded.")).finally(() => setLoading(false)); }, []);
   const categories = useMemo(() => { const byBook = Object.fromEntries(books.map(book => [book.bookId, book.category])); const counts = new Map<string, number>(); for (const loan of loans) { const category = byBook[loan.bookId] ?? "Other"; counts.set(category, (counts.get(category) ?? 0) + 1); } return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5); }, [books, loans]);
   const returned = loans.filter(loan => loan.status === "RETURNED").length; const active = loans.filter(loan => isActiveLoan(loan.status)).length; const totalCopies = books.reduce((sum, book) => sum + book.totalCopies, 0);
   const value = (number: number) => loading ? "—" : String(number);

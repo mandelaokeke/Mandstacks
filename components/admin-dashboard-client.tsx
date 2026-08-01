@@ -12,7 +12,7 @@ import { UserFirstName } from "./user-name";
 export function AdminDashboardClient() {
   const [books, setBooks] = useState<Book[]>([]); const [users, setUsers] = useState<UserProfile[]>([]); const [loans, setLoans] = useState<Loan[]>([]);
   const [loading, setLoading] = useState(true); const [error, setError] = useState("");
-  useEffect(() => { Promise.all([api.books("?limit=50"), api.users(), api.allLoans("?limit=50")]).then(([bookResult, userResult, loanResult]) => { setBooks(bookResult.items); setUsers(userResult.items); setLoans(loanResult.items); }).catch(caught => setError(caught instanceof Error ? caught.message : "Operational data could not be loaded.")).finally(() => setLoading(false)); }, []);
+  useEffect(() => { Promise.all([api.allBooks(), api.users(), api.allLoans("?limit=50")]).then(([bookResult, userResult, loanResult]) => { setBooks(bookResult); setUsers(userResult.items); setLoans(loanResult.items); }).catch(caught => setError(caught instanceof Error ? caught.message : "Operational data could not be loaded.")).finally(() => setLoading(false)); }, []);
   const totalCopies = books.reduce((sum, book) => sum + book.totalCopies, 0); const availableCopies = books.reduce((sum, book) => sum + book.availableCopies, 0);
   const active = loans.filter(loan => isActiveLoan(loan.status)); const overdue = active.filter(loan => loan.status === "OVERDUE");
   const userMap = useMemo(() => Object.fromEntries(users.map(user => [user.userId, user])), [users]);

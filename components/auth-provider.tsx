@@ -85,6 +85,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
       setStatus("authenticated");
     } catch {
+      // A password reset or revoked refresh token can leave enough cached state
+      // for Amplify to reject the next sign-in as "already signed in". Clear the
+      // local Cognito session before presenting the application as signed out.
+      await signOut().catch(() => undefined);
       setUser(null);
       setStatus("guest");
     }

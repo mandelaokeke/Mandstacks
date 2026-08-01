@@ -6,7 +6,6 @@ import {
   PutCommand,
   QueryCommand,
   ScanCommand,
-  UpdateCommand,
 } from "@aws-sdk/lib-dynamodb";
 import type { APIGatewayProxyResultV2 } from "aws-lambda";
 import { documentClient } from "../common/dynamo";

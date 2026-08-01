@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { confirmResetPassword, resetPassword } from "aws-amplify/auth";
+import { confirmResetPassword, resetPassword, signOut } from "aws-amplify/auth";
 import { FormEvent, useState } from "react";
 import { authConfigured } from "./auth-provider";
 import { Logo } from "./ui";
@@ -30,6 +30,9 @@ export function ResetPasswordForm({ initialEmail }: { initialEmail: string }) {
           confirmationCode: String(data.get("code") ?? "").trim(),
           newPassword: String(data.get("password") ?? ""),
         });
+        // Password changes can invalidate the server session while leaving old
+        // Cognito tokens in browser storage. Clear them before returning to login.
+        await signOut().catch(() => undefined);
         router.replace("/login?reset=true");
       }
     } catch (caught) { setError(caught instanceof Error ? caught.message : "The password could not be reset."); }

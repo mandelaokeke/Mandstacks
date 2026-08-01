@@ -29,8 +29,26 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return payload.data as T;
 }
 
+async function requestAllPages<T>(path: string, query = ""): Promise<T[]> {
+  const params = new URLSearchParams(query.startsWith("?") ? query.slice(1) : query);
+  params.set("limit", "50");
+  const items: T[] = [];
+  let cursor: string | undefined;
+  let pages = 0;
+  do {
+    if (cursor) params.set("cursor", cursor);
+    else params.delete("cursor");
+    const result = await request<PageResult<T>>(`${path}?${params.toString()}`);
+    items.push(...result.items);
+    cursor = result.cursor;
+    pages += 1;
+  } while (cursor && pages < 20);
+  return items;
+}
+
 export const api = {
   books: (query = "") => request<PageResult<Book>>(`/books${query}`),
+  allBooks: (query = "") => requestAllPages<Book>("/books", query),
   book: (id: string) => request<Book>(`/books/${id}`),
   createBook: (book: BookInput) => request<Book>("/books", { method: "POST", body: JSON.stringify(book) }),
   updateBook: (id: string, book: BookInput) => request<Book>(`/books/${id}`, { method: "PUT", body: JSON.stringify(book) }),
